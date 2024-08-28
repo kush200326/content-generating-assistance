@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #fffee7;
+      }
+      #content-form {
+        max-width: 400px;
+        background-color: #fff;
+        margin: 40px auto;
+        padding: 30px;
+        border: 5px solid #000000;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      } 
+
+      label {
+        width: 90%;
+        height: 15px;
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="text"],
+      select {
+        width: 90%;
+        height: 30px;
+        background-color: #fff;
+        margin-bottom: 20px;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button[type="submit"],
+      button[type="button"] {
+        width: 100%;
+        height: 40px;
+        background-color: #1a54dc;
+        color: #fff;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      button[type="submit"]:hover,
+      button[type="button"]:hover {
+        background-color: #118ba3;
+      }
+
+      #loading-indicator{
+        max-width: 600px;
+        text-align: center;
+        margin: 40px auto;
+        padding: 15px;
+        border-radius: 5px;
+      }
+      #generated-content {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #000000;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #generated-content h2 {
+        margin-top: 0;
+      }
+
+      #generated-content p {
+        margin-bottom: 20px;
+      }
+
+      .logo img{
+        height: 5%;
+        width: 5%;
+      }
+      #copy-button {
+        display: block;
+        margin-top: 10px;
+        text-align: right;
+      }
+
+      #status {
+        color: green;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+    </style>
+</head>
+<body>
+    <center>
+        <div class="logo">
+            <img src="ksd2.jpg" alt="" srcset="">
+        </div>
+    </center>
+    <center>
+        <h1>KSD Digital Marketing</h1>
+    </center>
+    <form id="content-form">
+        <label for="store-type">Store Type:</label>
+        <select id="store-type" name="store-type">
+            <option value="">Select a store type</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="clothing-store">Clothing Store</option>
+            <option value="electronics-shop">Electronics Shop</option>
+        </select>
+
+        <label for="food-type">Categories Type:</label>
+        <input type="text" id="food-type" name="food-type">
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location">
+
+        <label for="social-media">Target Social Media Platforms:</label>
+        <select id="social-media" name="social-media" >
+          <option value="">Select a social-media</option>
+            <option value="facebook">Facebook</option>
+            <option value="instagram">Instagram</option>
+            <option value="twitter">Twitter</option>
+            <option value="linkedin">LinkedIn</option>
+        </select>
+
+        <button type="submit">Generate Content</button>
+        <button type="button" id="refresh-button">Refresh</button>
+        <div id="loading-indicator" style="display: none;">Generating Content...</div>
+        <div id="generated-content" style="display: none;"></div>
+       <center> <button id="copy-button" style="display: none;">Copy Text</button>
+        <div id="status"></div></center>
+    </form>
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+    <script type="module">
+      import { GoogleGenerativeAI } from "@google/generative-ai";
+
+      const API_KEY = "AIzaSyAk6JqkJ9bJf7TWTvh9szMz4_08rVPJJi0";
+      const genAI = new GoogleGenerativeAI(API_KEY);
+
+      const form = document.getElementById("content-form");
+      const generatedContentDiv = document.getElementById("generated-content");
+      const loadingIndicator = document.getElementById("loading-indicator");
+      const refreshButton = document.getElementById("refresh-button");
+      const copyButton = document.getElementById("copy-button");
+      const status = document.getElementById("status");
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const storeType = document.getElementById("store-type").value;
+        const foodType = document.getElementById("food-type").value;
+        const location = document.getElementById("location").value;
+        const socialMediaPlatforms = Array.from(
+          document.getElementById("social-media").selectedOptions
+        ).map((option) => option.value);
+
+        loadingIndicator.style.display = "block";
+
+        async function run() {
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+          const prompt = "Write a marketing content based on " + 
+                       (storeType ? storeType : "") + 
+                       (foodType ? " " + foodType : "") + 
+                       (location ? " " + location : "") + 
+                       (socialMediaPlatforms.length > 0 ? " targeting " + socialMediaPlatforms.join(", ") : "");
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          const text = await response.text();
+          console.log(text);
+          generatedContentDiv.innerHTML = text.replace(/\*+/g, '.<br>');
+          generatedContentDiv.style.display = "block"; 
+          loadingIndicator.style.display = "none";
+          copyButton.style.display = "block"; // Show the copy button
+          
+          // Scroll to the generated content
+          window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+
+        run();
+      });
+
+      copyButton.addEventListener('click', function() {
+        const text = generatedContentDiv.innerText;
+
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(() => {
+            status.textContent = 'Text copied to clipboard!';
+            
+            // Optional: Clear status message after a few seconds
+            setTimeout(() => {
+              status.textContent = '';
+            }, 2000);
+          }).catch(err => {
+            console.error('Failed to copy text: ', err);
+          });
+        } else {
+          // Fallback for browsers that do not support the Clipboard API
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            status.textContent = 'Text copied to clipboard!';
+          } catch (err) {
+            console.error('Failed to copy text: ', err);
+          }
+          document.body.removeChild(textArea);
+        }
+      });
+
+      refreshButton.addEventListener("click", () => {
+        form.reset();
+        generatedContentDiv.style.display = "none";
+        copyButton.style.display = "none";
+        loadingIndicator.style.display = "none";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    </script>
+</body>
+</html>
